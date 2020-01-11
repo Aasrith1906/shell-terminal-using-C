@@ -8,25 +8,15 @@
     #define buffer_size 1024
 #endif
 
+
+#ifndef SHELL_DELIMS
+    #define SHELL_DELIMS " \t\r\n\a"
+#endif
+
 void shell_loop(void);
 char *shell_read_line(void);
 char **shell_split_line(char *line);
 int shell_execute(char **args);
-
-
-char **shell_split_line(char *line)
-{
-    char **tokens = malloc(buffer_size*sizeof(char));
-    
-    return tokens;
-}
-
-int shell_execute(char **args)
-{
-    printf("executing \n");
-
-    return 1;
-}
 
 
 char *shell_read_line(void)
@@ -84,6 +74,65 @@ char *shell_read_line(void)
     }
 }
 
+char **shell_split_line(char *line)
+{   
+    int buff_size = buffer_size;
+    int position = 0;
+    char **tokens = malloc(buff_size*sizeof(char));
+    char *token;
+
+    if(!tokens)
+    {
+        printf("memory allocation error \n");
+
+        exit(EXIT_FAILURE);
+    }
+
+    token = strtok(line , SHELL_DELIMS);
+
+    while(token != NULL)
+    {
+        tokens[position] = token;
+
+        position++;
+
+        //printf("%s \n" , token);
+
+        if(position >= buff_size )
+        {
+
+            buff_size += buffer_size;
+
+            tokens = realloc(tokens , buff_size);
+
+            if(!tokens)
+            {
+                printf("memory allocation error \n");
+
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        token = strtok(NULL , SHELL_DELIMS);
+
+        
+    }
+
+    tokens[position] = NULL;
+
+    return tokens;
+}
+
+int shell_execute(char **args)
+{
+    printf("executing \n");
+
+    return 1;
+}
+
+
+
+
 void shell_loop(void)
 {
     char *line;
@@ -96,6 +145,9 @@ void shell_loop(void)
         line = shell_read_line();
         args = shell_split_line(line);
         status = shell_execute(args);
+
+        free(line);
+        free(args);
 
     }
     while(status);
