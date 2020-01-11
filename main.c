@@ -21,6 +21,26 @@ char *shell_read_line(void);
 char **shell_split_line(char *line);
 int shell_execute(char **args);
 
+int shell_cd(char **args);
+int shell_exit(char **args);
+int shell_help(char **args);
+int num_builtin_func();
+
+
+
+char *builtin_str[] = 
+{
+    "cd",
+    "exit",
+    "help"
+};
+
+int (*builtin_func[]) (char**) = 
+{
+    &shell_cd,
+    &shell_exit,
+    &shell_help
+};
 
 char *shell_read_line(void)
 {
@@ -78,8 +98,74 @@ char *shell_read_line(void)
 }
 
 
+//shell builtins 
+
+int shell_cd(char **args)
+{
+    if(args[1] == NULL)
+    {
+        printf("usage : cd <dir name> \n");
+
+        return 1;
+    }
+
+    if(_chdir(args[1])==-1)
+    {
+        printf("error while changing directory \n");
+
+        return 1;
+    }
+
+    return 1;
+}
+
+int shell_exit(char **args)
+{
+    exit(EXIT_SUCCESS);
+}
+
+int shell_help(char **args)
+{
+    printf(" -> COMMAND LINE SHELL CREATED BY AASRITH CH \n");
+    
+    printf(" -> builtin functions : \n");
+
+    for(int i = 0 ; i < num_builtin_func(); i++)
+    {
+        printf("%d)%s \n",(i+1),builtin_str[i]);
+    }
+
+    return 1;
+}
+
+
+
+
+// end of shell builtins
+
 int shell_launch(char **args)
 {
+
+    /* make this better */
+
+    char *buffer;
+    buffer = malloc(4*buffer_size*sizeof(char));
+
+    buffer[0] = '\0';
+
+    for(int i = 0; i <=sizeof(args); i++)
+    {
+        if(args[i] != NULL)
+        {
+            strcat(buffer , args[i]);
+            strcat(buffer , " ");
+        }    
+    }
+
+    /* make above code better (memory allocation use a int to iterate through)*/
+
+   // printf("%s \n" , buffer);
+
     STARTUPINFO si; //struct for startup info
 
     PROCESS_INFORMATION pi; //struct for process info 
@@ -92,7 +178,7 @@ int shell_launch(char **args)
     if(
         !CreateProcess(
             NULL ,
-            args[0],
+            buffer,
             NULL,
             NULL,
             FALSE,
@@ -106,7 +192,8 @@ int shell_launch(char **args)
     )
     {
         printf("Create process failed \n");
-        return 0;
+        free(buffer);
+        return 1;
     }
 
     WaitForSingleObject(pi.hProcess,INFINITE); //wait for child process to exit
@@ -114,6 +201,8 @@ int shell_launch(char **args)
     CloseHandle(pi.hProcess);
 
     CloseHandle(pi.hThread);
+
+    free(buffer);
 
     return 1;
 
@@ -142,7 +231,7 @@ char **shell_split_line(char *line)
 
         position++;
 
-        printf("%s \n" , token);
+        //printf("%s \n" , token);
 
         if(position >= buff_size )
         {
@@ -169,16 +258,43 @@ char **shell_split_line(char *line)
     return tokens;
 }
 
-int shell_execute(char **args)
+int num_builtin_func()
 {
-    printf("launching : %s" , args[0]);
-
-    shell_launch(args);
-
-    return 1;
+    return sizeof(builtin_str)/sizeof(char *);
 }
 
+int shell_execute(char **args)
+{
 
+    int i;
+
+    int command_found_in_builtin = 0;
+
+    if(args[0] == NULL) //empty command
+    {
+        return 1;
+    } 
+
+    for(i = 0; i<=num_builtin_func(); i++)
+    {
+        if(strcmp(args[0] , builtin_str[i]) == 0)
+        {   
+            command_found_in_builtin = 1;
+            return (*builtin_func[i])(args);
+
+        }
+    }
+
+    if(command_found_in_builtin == 0)
+    {
+        //printf("launching : %s \n" , args[0]);
+
+         return shell_launch(args);
+    }
+ 
+
+   
+}
 
 
 void shell_loop(void)
@@ -211,6 +327,7 @@ void shell_loop(void)
         free(args);
         free(directory);
 
+        printf("\n");
     }
    
 }
