@@ -31,6 +31,8 @@ int shell_cd(char **args);
 int shell_exit(char **args);
 int shell_help(char **args);
 int shell_clear_screen(char **args);
+int shell_ls(char **args);
+int shell_mkdir(char **args);
 
 int num_builtin_func();
 
@@ -41,7 +43,9 @@ char *builtin_str[] =
     "cd",
     "exit",
     "help",
-    "cls"
+    "cls",
+    "ls",
+    "mkdir"
 };
 
 int (*builtin_func[]) (char**) = 
@@ -49,7 +53,9 @@ int (*builtin_func[]) (char**) =
     &shell_cd,
     &shell_exit,
     &shell_help,
-    &shell_clear_screen
+    &shell_clear_screen,
+    &shell_ls,
+    &shell_mkdir
 };
 
 char *shell_read_line(void)
@@ -156,7 +162,60 @@ int shell_clear_screen(char **args)
     return 1;
 }
 
+int shell_ls(char **args)
+{   
 
+    char *directory;
+
+    WIN32_FIND_DATA ffd;
+    LARGE_INTEGER file_size;
+    char szDir[MAX_PATH];
+
+    HANDLE hFind = INVALID_HANDLE_VALUE;
+
+    if((directory = _getcwd(NULL , 0)) == NULL )
+    {
+        printf("_getcwd error \n");
+        return EXIT_FAILURE;
+    }
+
+    if(strlen(directory) > MAX_PATH)
+    {
+        printf("path too large \n");
+
+        return EXIT_FAILURE;
+    }
+
+    strcpy(szDir , directory);
+    strcat(szDir , "\\*" );
+
+    hFind = FindFirstFile(szDir , &ffd);
+
+    if(INVALID_HANDLE_VALUE == hFind)
+    {
+        printf("error in finding first file \n");
+        return EXIT_FAILURE;
+    }
+
+    do
+    {
+       
+       if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+       {
+           printf("%s \n" , ffd.cFileName);
+       }
+
+    } 
+    
+    while (FindNextFile(hFind , &ffd) != 0);
+    
+    return 1;
+}
+
+int shell_mkdir(char **args)
+{
+    return 1;
+}
 
 
 // end of shell builtins
@@ -167,7 +226,17 @@ int shell_launch(char **args)
     /* make this better */
 
     char *buffer;
-    buffer = malloc(4*buffer_size*sizeof(char));
+
+    int buff_size = buffer_size;
+
+    buffer = malloc(buffer_size*sizeof(char));
+
+    if(!buffer)
+    {
+        printf("memory allocation error \n");
+
+        return EXIT_FAILURE;
+    }
 
     buffer[0] = '\0';
 
@@ -177,18 +246,23 @@ int shell_launch(char **args)
         {
             strcat(buffer , args[i]);
             strcat(buffer , " ");
+
+            if(sizeof(buffer)>buff_size)
+            {
+                buff_size += buffer_size;
+
+                realloc(buffer , buff_size);
+            }
         }    
     }
 
-    /* make above code better (memory allocation use a int to iterate through)*/
-
-   // printf("%s \n" , buffer);
 
     STARTUPINFO si; //struct for startup info
 
     PROCESS_INFORMATION pi; //struct for process info 
 
     ZeroMemory(&si , sizeof(si));
+
     si.cb = sizeof(si);
     
     ZeroMemory(&pi , sizeof(pi));
