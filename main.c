@@ -23,7 +23,9 @@ char **shell_split_line(char *line)
 
 int shell_execute(char **args)
 {
-    //printf("executing lol \n");
+    printf("executing \n");
+
+    return 1;
 }
 
 
@@ -45,37 +47,40 @@ char *shell_read_line(void)
         c = getchar();
 
 
-        if(c == EOF)
+        if(c == '\n')
         {
             buffer[p] = '\0';
+            
+            //printf("%s \n" , buffer);
 
-            printf("%s \n" , buffer);
             return buffer;
 
-            exit(EXIT_SUCCESS);
         }
 
         else
         {
-            if(p<=sizeof(buffer))
-            {
-                buffer[p] = c;
-                p++;
-            }
-            else
-            {
-                buff_size += buff_size;
 
-                buffer = realloc(buffer , buff_size);
-
-                if(!buffer)
-                {
-                    printf("memory allocation error \n");
-                    exit(EXIT_FAILURE);
-                }
-            }
-            
+            buffer[p] = c;
+           
         }
+
+        p++;
+        
+        if(p>=buff_size)
+        {
+            buff_size += buff_size;
+
+            buffer = realloc(buffer , buff_size);
+
+            if(!buffer)
+            {
+                printf("shell memory allocation error \n");
+
+                exit(EXIT_FAILURE);
+            }
+        }
+        
+
     }
 }
 
@@ -87,12 +92,8 @@ void shell_loop(void)
 
     do
     {
-        printf(">  ");
+        printf(">>  ");
         line = shell_read_line();
-
-        if(line == "exit")
-            status = 0;
-
         args = shell_split_line(line);
         status = shell_execute(args);
 
