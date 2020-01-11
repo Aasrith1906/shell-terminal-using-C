@@ -1,3 +1,9 @@
+/*
+    written by Aasrith Ch .
+    A simple command line shell written using C can start processes , and has some basic shell commands
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
@@ -24,6 +30,7 @@ int shell_execute(char **args);
 int shell_cd(char **args);
 int shell_exit(char **args);
 int shell_help(char **args);
+int shell_clear_screen(char **args);
 int num_builtin_func();
 
 
@@ -33,13 +40,15 @@ char *builtin_str[] =
     "cd",
     "exit",
     "help"
+    "clrscr"
 };
 
 int (*builtin_func[]) (char**) = 
 {
     &shell_cd,
     &shell_exit,
-    &shell_help
+    &shell_help,
+    &shell_clear_screen
 };
 
 char *shell_read_line(void)
@@ -334,6 +343,9 @@ void shell_loop(void)
 
 int main(void)
 {
+
+    settext
+
     shell_loop();
 
     return 0;
