@@ -3,6 +3,6 @@ command line shell using C
 
 current features:
 
-.starting processes,
+.starting processes
 ,cd
 ,clrscr
