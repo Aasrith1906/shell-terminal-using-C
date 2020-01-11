@@ -31,6 +31,7 @@ int shell_cd(char **args);
 int shell_exit(char **args);
 int shell_help(char **args);
 int shell_clear_screen(char **args);
+
 int num_builtin_func();
 
 
@@ -39,8 +40,8 @@ char *builtin_str[] =
 {
     "cd",
     "exit",
-    "help"
-    "clrscr"
+    "help",
+    "cls"
 };
 
 int (*builtin_func[]) (char**) = 
@@ -143,6 +144,14 @@ int shell_help(char **args)
     {
         printf("%d)%s \n",(i+1),builtin_str[i]);
     }
+
+    return 1;
+}
+
+int shell_clear_screen(char **args)
+{
+    
+    system("cls");
 
     return 1;
 }
@@ -343,6 +352,7 @@ void shell_loop(void)
 
 int main(void)
 {
+
 
     shell_loop();
 
