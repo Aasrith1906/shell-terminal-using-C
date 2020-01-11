@@ -344,8 +344,6 @@ void shell_loop(void)
 int main(void)
 {
 
-    settext
-
     shell_loop();
 
     return 0;
