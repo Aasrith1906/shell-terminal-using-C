@@ -4,15 +4,17 @@
 #include <string.h>
 #include <windows.h>
 #include <tchar.h>
+#include <direct.h>
 
 #ifndef buffer_size
     #define buffer_size 1024
 #endif
 
-
 #ifndef SHELL_DELIMS
     #define SHELL_DELIMS " \t\r\n\a"
 #endif
+
+
 
 void shell_loop(void);
 char *shell_read_line(void);
@@ -104,7 +106,7 @@ int shell_launch(char **args)
     )
     {
         printf("Create process failed \n");
-        exit(EXIT_FAILURE);
+        return 0;
     }
 
     WaitForSingleObject(pi.hProcess,INFINITE); //wait for child process to exit
@@ -185,18 +187,32 @@ void shell_loop(void)
     char **args;
     int status;
 
-    do
+    char *directory;
+
+    while(1)
     {
-        printf(">>  ");
+        if((directory = _getcwd(NULL , 0)) == NULL)
+        {
+            printf("_getcwd error \n");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("%s >>  " , directory);
         line = shell_read_line();
         args = shell_split_line(line);
         status = shell_execute(args);
 
+        if(status==0)
+        {
+            exit(EXIT_FAILURE);
+        }
+
         free(line);
         free(args);
+        free(directory);
 
     }
-    while(status);
+   
 }
 
 int main(void)
