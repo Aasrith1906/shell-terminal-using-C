@@ -11,52 +11,10 @@
 #include <windows.h>
 #include <tchar.h>
 #include <direct.h>
-
-#ifndef buffer_size
-    #define buffer_size 1024
-#endif
-
-#ifndef SHELL_DELIMS
-    #define SHELL_DELIMS " \t\r\n\a"
-#endif
+#include "builtin.h"
 
 
 
-void shell_loop(void);
-char *shell_read_line(void);
-char **shell_split_line(char *line);
-int shell_execute(char **args);
-
-int shell_cd(char **args);
-int shell_exit(char **args);
-int shell_help(char **args);
-int shell_clear_screen(char **args);
-int shell_ls(char **args);
-int shell_mkdir(char **args);
-
-int num_builtin_func();
-
-
-
-char *builtin_str[] = 
-{
-    "cd",
-    "exit",
-    "help",
-    "cls",
-    "ls",
-    "mkdir"
-};
-
-int (*builtin_func[]) (char**) = 
-{
-    &shell_cd,
-    &shell_exit,
-    &shell_help,
-    &shell_clear_screen,
-    &shell_ls,
-    &shell_mkdir
-};
 
 char *shell_read_line(void)
 {
@@ -116,6 +74,27 @@ char *shell_read_line(void)
 
 //shell builtins 
 
+char *builtin_str[] = 
+{
+    "cd",
+    "exit",
+    "help",
+    "cls",
+    "ls",
+    "mkdir"
+};
+
+int (*builtin_func[]) (char**) = 
+{
+    &shell_cd,
+    &shell_exit,
+    &shell_help,
+    &shell_clear_screen,
+    &shell_ls,
+    &shell_mkdir
+};
+
+
 int shell_cd(char **args)
 {
     if(args[1] == NULL)
@@ -165,7 +144,7 @@ int shell_clear_screen(char **args)
 int shell_ls(char **args)
 {   
 
-    char *directory;
+     char *directory;
 
     WIN32_FIND_DATA ffd;
     LARGE_INTEGER file_size;
@@ -173,18 +152,24 @@ int shell_ls(char **args)
 
     HANDLE hFind = INVALID_HANDLE_VALUE;
 
-    if((directory = _getcwd(NULL , 0)) == NULL )
+    if(args[1] == NULL)
     {
-        printf("_getcwd error \n");
-        return EXIT_FAILURE;
-    }
+        if((directory = _getcwd(NULL , 0)) == NULL )
+        {
+            printf("_getcwd error \n");
+            return EXIT_FAILURE;
+        }
 
+    }
+  
     if(strlen(directory) > MAX_PATH)
     {
         printf("path too large \n");
 
         return EXIT_FAILURE;
     }
+
+   
 
     strcpy(szDir , directory);
     strcat(szDir , "\\*" );
@@ -210,10 +195,24 @@ int shell_ls(char **args)
     while (FindNextFile(hFind , &ffd) != 0);
     
     return 1;
+  
 }
 
 int shell_mkdir(char **args)
 {
+
+    if(args[1] == NULL)
+    {
+        printf("usage : mkdir <new folder name>");
+
+        return 1;
+    }
+
+
+    _mkdir(args[1]);
+
+    shell_cd(args);
+
     return 1;
 }
 
